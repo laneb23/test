@@ -1,0 +1,47 @@
+---
+
+- hosts: hosts
+  connection: local
+  gather_facts: False
+
+  tasks:
+
+   - name: Provision a set of instances
+     ec2:
+      zone: "{{ zone }}"         
+      image: "{{ image }}"
+      instance_type: "{{ instance_type }}"
+      region: "{{ region }}"
+      key_name: "{{ sshkey }}"
+      group_id: "{{ group }}"
+      vpc_subnet_id: "{{ vpc_subnet_id }}"
+      instance_type: "{{ instance_type }}"
+      assign_public_ip: yes   
+      wait: true
+      exact_count: 1
+      count_tag:
+        Name: Simple
+      instance_tags:
+        Name: Simple
+     register: ec2
+   - name: What is in the ec2 variable?
+     debug: var=ec2  
+
+- hosts: hosts
+  user: ec2-user
+  sudo: True
+  gather_facts: True
+
+  tasks:
+
+   - name: Update All
+     yum: name=update state=latest
+     sudo: True
+
+   - name: Install latest version of Apache
+     yum: name=httpd state=latest
+     sudo: True
+
+   - name: Start Apache
+     service: name=httpd state=started
+     sudo: True
